@@ -990,3 +990,158 @@ img {
     transition: none !important;
   }
     }
+/* ================================
+   BOOKLY DELETE CONFIRM MODAL
+================================ */
+
+.bookly-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  animation: booklyFadeIn 0.18s ease;
+}
+
+.bookly-confirm-box {
+  width: min(390px, 100%);
+
+  padding: 26px 22px 20px;
+
+  border-radius: 24px;
+
+  background: var(--card-bg, #ffffff);
+  color: var(--text-color, #111827);
+
+  box-shadow:
+    0 25px 70px rgba(0, 0, 0, 0.25);
+
+  text-align: center;
+
+  animation: booklyModalIn 0.2s ease;
+}
+
+.bookly-confirm-icon {
+  width: 64px;
+  height: 64px;
+
+  margin: 0 auto 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 20px;
+
+  background: #fee2e2;
+  color: #dc2626;
+
+  font-size: 30px;
+}
+
+.bookly-confirm-box h3 {
+  margin: 0 0 10px;
+
+  font-size: 21px;
+  font-weight: 750;
+}
+
+.bookly-confirm-title {
+  margin: 0 0 8px;
+
+  font-size: 15px;
+  font-weight: 650;
+
+  color: #ef4444;
+
+  word-break: break-word;
+}
+
+.bookly-confirm-message {
+  margin: 0 0 22px;
+
+  font-size: 14px;
+  line-height: 1.5;
+
+  color: #6b7280;
+}
+
+.bookly-confirm-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.bookly-confirm-actions button {
+  flex: 1;
+
+  min-height: 48px;
+
+  border: none;
+  border-radius: 14px;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.bookly-confirm-actions button:active {
+  transform: scale(0.96);
+}
+
+.bookly-confirm-cancel {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.bookly-confirm-delete {
+  background: linear-gradient(
+    135deg,
+    #ef4444,
+    #dc2626
+  );
+
+  color: white;
+
+  box-shadow:
+    0 8px 20px rgba(239, 68, 68, 0.25);
+}
+
+.bookly-confirm-actions button:hover {
+  opacity: 0.9;
+}
+
+@keyframes booklyFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes booklyModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
