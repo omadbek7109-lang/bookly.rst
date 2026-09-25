@@ -394,53 +394,35 @@
   // ----------------------------------------------------------
 
   function deleteBook(bookId) {
-    const book =
-      BooklyStorage.getBook(bookId);
+  const book = BooklyStorage.getBook(bookId);
 
-    if (!book) return;
+  if (!book) return;
 
-    const message =
-      `"${book.title || "Nomsiz kitob"}" kitobini o‘chirmoqchimisiz?`;
+  const title = book.title || "Nomsiz kitob";
 
-    if (
-      window.BooklyTelegram &&
-      typeof BooklyTelegram.showConfirm === "function"
-    ) {
-      BooklyTelegram.showConfirm(
-        message,
-        confirmed => {
-          if (confirmed) {
-            performDelete(bookId);
-          }
-        }
-      );
+  const confirmed = window.confirm(
+    `"${title}" kitobini o‘chirmoqchimisiz?\n\nBu amalni qaytarib bo‘lmaydi.`
+  );
 
-      return;
-    }
+  if (!confirmed) return;
 
-    if (confirm(message)) {
-      performDelete(bookId);
-    }
+  BooklyStorage.deleteBook(bookId);
+
+  renderDashboard();
+
+  if (
+    currentView === "editor" ||
+    currentView === "preview"
+  ) {
+    showView("dashboard");
   }
 
-  function performDelete(bookId) {
-    BooklyStorage.deleteBook(bookId);
-
-    renderDashboard();
-
-    if (
-      currentView === "editor" ||
-      currentView === "preview"
-    ) {
-      showView("dashboard");
-    }
-
-    if (
-      window.BooklyTelegram &&
-      typeof BooklyTelegram.haptic === "function"
-    ) {
-      BooklyTelegram.haptic("success");
-    }
+  if (
+    window.BooklyTelegram &&
+    typeof BooklyTelegram.haptic === "function"
+  ) {
+    BooklyTelegram.haptic("success");
+  }
   }
 
   // ----------------------------------------------------------
