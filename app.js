@@ -594,7 +594,32 @@
           }
         }
       );
+    // PowerPoint Export
+    $("#editor-export-btn")
+      ?.addEventListener(
+        "click",
+        () => {
+          const bookId =
+            BooklyEditor.getCurrentBookId();
 
+          if (!bookId) {
+            alert("Avval kitobni oching.");
+            return;
+          }
+
+          if (
+            !window.BooklyPowerPoint ||
+            typeof BooklyPowerPoint.exportPPTX !== "function"
+          ) {
+            alert(
+              "PowerPoint moduli yuklanmagan. Internetni tekshiring."
+            );
+            return;
+          }
+
+          BooklyPowerPoint.exportPPTX(bookId);
+        }
+      );
     // Modal tashqarisiga bosilganda yopish
     $("#new-book-modal")
       ?.addEventListener(
