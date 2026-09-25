@@ -271,15 +271,18 @@ window.BooklyPowerPoint = (() => {
           sizingContain: true
         });
       } catch (error) {
+        console.error("Rasm qo'shishda xato:", error, block);
+
         slide.addText(
-          "Rasmni PowerPoint'ga qo'shib bo'lmadi.",
+          "Rasmni PowerPoint'ga qo'shib bo'lmadi: " +
+          (error?.message || "noma'lum xato"),
           {
             x: 1,
             y: 3,
             w: 11.3,
             h: 0.6,
             align: "center",
-            fontSize: 18,
+            fontSize: 14,
             color: "CC0000"
           }
         );
@@ -319,124 +322,126 @@ window.BooklyPowerPoint = (() => {
       return;
     }
 
-    const pptx = new PptxGenJS();
+    try {
 
-    pptx.layout = "LAYOUT_WIDE";
-    pptx.author = book.author || "Bookly Mini";
-    pptx.subject = book.description || "";
-    pptx.title = book.title || "Bookly Mini";
-    pptx.company = "Bookly Mini";
-    pptx.lang = "uz-UZ";
-    pptx.theme = {
-      headFontFace: "Aptos Display",
-      bodyFontFace: "Aptos",
-      lang: "uz-UZ"
-    };
+      const pptx = new PptxGenJS();
 
-    addTitleSlide(pptx, book);
+      pptx.layout = "LAYOUT_WIDE";
+      pptx.author = book.author || "Bookly Mini";
+      pptx.subject = book.description || "";
+      pptx.title = book.title || "Bookly Mini";
+      pptx.company = "Bookly Mini";
+      pptx.lang = "uz-UZ";
+      pptx.theme = {
+        headFontFace: "Aptos Display",
+        bodyFontFace: "Aptos",
+        lang: "uz-UZ"
+      };
 
-    let pageNumber = 2;
+      addTitleSlide(pptx, book);
 
-    const chapters = Array.isArray(book.chapters)
-      ? book.chapters
-      : [];
+      let pageNumber = 2;
 
-    chapters.forEach((chapter, chapterIndex) => {
-
-      addChapterSlide(
-        pptx,
-        book,
-        chapter,
-        chapterIndex + 1
-      );
-
-      pageNumber++;
-
-      const blocks = Array.isArray(chapter.blocks)
-        ? chapter.blocks
+      const chapters = Array.isArray(book.chapters)
+        ? book.chapters
         : [];
 
-      blocks.forEach(block => {
+      chapters.forEach((chapter, chapterIndex) => {
 
-        const text =
-          cleanText(
-            block.html ||
-            block.text ||
-            block.content ||
-            ""
-          );
+        addChapterSlide(
+          pptx,
+          book,
+          chapter,
+          chapterIndex + 1
+        );
 
-        switch (block.type) {
+        pageNumber++;
 
-          case "text":
-            addTextSlide(
-              pptx,
-              book,
-              text,
-              pageNumber
+        const blocks = Array.isArray(chapter.blocks)
+          ? chapter.blocks
+          : [];
+
+        blocks.forEach(block => {
+
+          const text =
+            cleanText(
+              block.html ||
+              block.text ||
+              block.content ||
+              ""
             );
-            pageNumber++;
-            break;
 
-          case "heading":
-            addHeadingSlide(
-              pptx,
-              book,
-              text,
-              pageNumber
-            );
-            pageNumber++;
-            break;
+          switch (block.type) {
 
-          case "quote":
-            addQuoteSlide(
-              pptx,
-              book,
-              text,
-              pageNumber
-            );
-            pageNumber++;
-            break;
+            case "text":
+              addTextSlide(pptx, book, text, pageNumber);
+              pageNumber++;
+              break;
 
-          case "image":
-            addImageSlide(
-              pptx,
-              book,
-              block,
-              pageNumber
-            );
-            pageNumber++;
-            break;
+            case "heading":
+              addHeadingSlide(pptx, book, text, pageNumber);
+              pageNumber++;
+              break;
 
-          case "divider":
-            addDividerSlide(
-              pptx,
-              book,
-              pageNumber
-            );
-            pageNumber++;
-            break;
-        }
+            case "quote":
+              addQuoteSlide(pptx, book, text, pageNumber);
+              pageNumber++;
+              break;
 
+            case "image":
+              addImageSlide(pptx, book, block, pageNumber);
+              pageNumber++;
+              break;
+
+            case "divider":
+              addDividerSlide(pptx, book, pageNumber);
+              pageNumber++;
+              break;
+          }
+
+        });
       });
-    });
 
-    if (chapters.length === 0) {
-      addTextSlide(
-        pptx,
-        book,
-        "Kitob hali mazmun bilan to'ldirilmagan.",
-        pageNumber
+      if (chapters.length === 0) {
+        addTextSlide(
+          pptx,
+          book,
+          "Kitob hali mazmun bilan to'ldirilmagan.",
+          pageNumber
+        );
+      }
+
+      const filename =
+        safeFileName(book.title || "bookly-book") +
+        ".pptx";
+
+      try {
+        await pptx.writeFile({
+          fileName: filename
+        });
+
+        alert(
+          "✅ PowerPoint tayyor!\n\nFayl yuklab olish boshlandi.\n\nFayl nomi: " +
+          filename
+        );
+      } catch (error) {
+        console.error("PowerPoint writeFile xatosi:", error);
+
+        alert(
+          "❌ Faylni yuklab olishda xatolik:\n\n" +
+          (error?.message || "Noma'lum xatolik")
+        );
+      }
+
+    } catch (error) {
+
+      console.error("PowerPoint export xatosi:", error);
+
+      alert(
+        "❌ PowerPoint yaratishda xatolik yuz berdi.\n\n" +
+        (error?.message || "Noma'lum xatolik")
       );
     }
-
-    const filename =
-      safeFileName(book.title || "bookly-book") +
-      ".pptx";
-
-    await pptx.writeFile({
-      fileName: filename
-    });
   }
 
   function exportCurrentBook() {
