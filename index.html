@@ -3,20 +3,33 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Bookly Mini — elektron kitob yaratish</title>
-<meta name="description" content="Telegram Mini App: o'z elektron kitobingizni yarating, tahrirlang va o'qing." />
 
-<!-- Telegram WebApp SDK -->
+<title>Bookly Mini — elektron kitob yaratish</title>
+
+<meta
+  name="description"
+  content="Telegram Mini App: o'z elektron kitobingizni yarating, tahrirlang va o'qing."
+/>
+
+<!-- Telegram WebApp -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-<!-- Fonts -->
+<!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-<!-- PDF export -->
+<link
+  href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap"
+  rel="stylesheet"
+/>
+
+<!-- PDF kutubxonasi -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
+<!-- PowerPoint kutubxonasi -->
+<script src="https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+
+<!-- Main CSS -->
 <link rel="stylesheet" href="style.css" />
 </head>
 
@@ -24,36 +37,70 @@
 
 <div class="app-shell">
 
-  <!-- DASHBOARD -->
+  <!-- =========================
+       DASHBOARD
+  ========================== -->
+
   <section id="view-dashboard" class="view">
+
     <header class="topbar">
       <h1 class="topbar-title">📚 Mening kitoblarim</h1>
     </header>
 
     <div class="view-content">
-      <button id="btn-new-book" class="btn btn-primary btn-block">
+
+      <button
+        id="btn-new-book"
+        class="btn btn-primary btn-block"
+      >
         + Yangi kitob
       </button>
 
-      <div id="dashboard-empty" class="empty-state hidden">
+      <div
+        id="dashboard-empty"
+        class="empty-state hidden"
+      >
         <div class="empty-state-icon">📖</div>
-        <p>Hali kitob yo‘q. Birinchi kitobingizni yarating!</p>
 
-        <button id="btn-new-book-empty" class="btn btn-primary">
+        <p>
+          Hali kitob yo‘q.
+          Birinchi kitobingizni yarating!
+        </p>
+
+        <button
+          id="btn-new-book-empty"
+          class="btn btn-primary"
+        >
           + Yangi kitob
         </button>
       </div>
 
-      <div id="book-grid" class="book-grid"></div>
+      <div
+        id="book-grid"
+        class="book-grid"
+      ></div>
+
     </div>
+
   </section>
 
-  <!-- EDITOR -->
-  <section id="view-editor" class="view hidden">
+
+  <!-- =========================
+       EDITOR
+  ========================== -->
+
+  <section
+    id="view-editor"
+    class="view hidden"
+  >
 
     <header class="topbar">
 
-      <button id="editor-back" class="icon-btn" aria-label="Orqaga">
+      <button
+        id="editor-back"
+        class="icon-btn"
+        aria-label="Orqaga"
+      >
         ←
       </button>
 
@@ -73,11 +120,16 @@
 
     </header>
 
+
     <div class="view-content editor-content">
+
+      <!-- Boblar -->
 
       <div class="editor-chapters-panel">
 
-        <h2 class="panel-label">Boblar</h2>
+        <h2 class="panel-label">
+          Boblar
+        </h2>
 
         <ul
           id="editor-chapter-list"
@@ -93,6 +145,9 @@
 
       </div>
 
+
+      <!-- Chapter editor -->
+
       <div class="editor-chapter-panel">
 
         <input
@@ -105,6 +160,9 @@
           id="editor-blocks"
           class="editor-blocks"
         ></div>
+
+
+        <!-- Add blocks -->
 
         <div class="add-block-toolbar">
 
@@ -147,6 +205,9 @@
 
       </div>
 
+
+      <!-- Side panel -->
+
       <div class="editor-side-panel">
 
         <h2 class="panel-label">
@@ -178,11 +239,16 @@
 
         </div>
 
+
+        <!-- Audio -->
+
         <h2 class="panel-label">
           🎵 Audio
         </h2>
 
-        <label class="btn btn-ghost btn-small btn-block file-btn">
+        <label
+          class="btn btn-ghost btn-small btn-block file-btn"
+        >
 
           Audio tanlash
 
@@ -202,7 +268,9 @@
           Audio biriktirilmagan
         </p>
 
-        <div id="editor-audio-preview"></div>
+        <div
+          id="editor-audio-preview"
+        ></div>
 
         <button
           id="editor-audio-remove"
@@ -210,6 +278,9 @@
         >
           Audio olib tashlash
         </button>
+
+
+        <!-- Export -->
 
         <h2 class="panel-label">
           📤 Eksport
@@ -219,7 +290,7 @@
           id="editor-export-btn"
           class="btn btn-secondary btn-block"
         >
-          📄 PDF yaratish
+          📊 PowerPoint yaratish
         </button>
 
       </div>
@@ -228,8 +299,15 @@
 
   </section>
 
-  <!-- PREVIEW -->
-  <section id="view-preview" class="view hidden">
+
+  <!-- =========================
+       PREVIEW
+  ========================== -->
+
+  <section
+    id="view-preview"
+    class="view hidden"
+  >
 
     <header class="topbar">
 
@@ -248,9 +326,9 @@
       <button
         id="preview-export-btn"
         class="icon-btn"
-        title="PDF"
+        title="PowerPoint"
       >
-        📄
+        📊
       </button>
 
     </header>
@@ -266,13 +344,22 @@
 
   </section>
 
-  <!-- SETTINGS -->
-  <section id="view-settings" class="view hidden">
+
+  <!-- =========================
+       SETTINGS
+  ========================== -->
+
+  <section
+    id="view-settings"
+    class="view hidden"
+  >
 
     <header class="topbar">
+
       <h1 class="topbar-title">
         ⚙️ Sozlamalar
       </h1>
+
     </header>
 
     <div class="view-content">
@@ -309,8 +396,15 @@
 
   </section>
 
-  <!-- BOTTOM NAV -->
-  <nav id="bottom-nav" class="bottom-nav">
+
+  <!-- =========================
+       BOTTOM NAVIGATION
+  ========================== -->
+
+  <nav
+    id="bottom-nav"
+    class="bottom-nav"
+  >
 
     <button
       class="nav-btn active"
@@ -341,7 +435,11 @@
 
 </div>
 
-<!-- NEW BOOK MODAL -->
+
+<!-- =========================
+     NEW BOOK MODAL
+========================== -->
+
 <div
   id="new-book-modal"
   class="modal-overlay hidden"
@@ -364,6 +462,7 @@
 
     </div>
 
+
     <form
       id="new-book-form"
       class="modal-body"
@@ -380,6 +479,7 @@
         required
       />
 
+
       <label class="field-label">
         Muallif
       </label>
@@ -390,11 +490,14 @@
         placeholder="Ismingiz"
       />
 
+
       <label class="field-label">
         Muqova rasmi
       </label>
 
-      <label class="btn btn-ghost btn-small file-btn">
+      <label
+        class="btn btn-ghost btn-small file-btn"
+      >
 
         Rasm tanlash
 
@@ -412,6 +515,7 @@
         class="cover-preview"
       ></div>
 
+
       <label class="field-label">
         Qisqa tavsif
       </label>
@@ -422,6 +526,7 @@
         rows="3"
         placeholder="Kitobingiz haqida bir necha jumla..."
       ></textarea>
+
 
       <label class="field-label">
         Dizayn
@@ -455,6 +560,7 @@
 
       </div>
 
+
       <div class="modal-actions">
 
         <button
@@ -480,12 +586,25 @@
 
 </div>
 
+
+<!-- =========================
+     JAVASCRIPT FILES
+========================== -->
+
 <script src="storage.js"></script>
+
 <script src="telegram.js"></script>
+
 <script src="editor.js"></script>
+
 <script src="preview.js"></script>
+
 <script src="export.js"></script>
+
+<script src="powerpoint.js"></script>
+
 <script src="app.js"></script>
 
+
 </body>
-</html>
+</html> 
