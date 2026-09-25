@@ -400,11 +400,12 @@
 
   const title = book.title || "Nomsiz kitob";
 
-  const confirmed = window.confirm(
-    `"${title}" kitobini o‘chirmoqchimisiz?\n\nBu amalni qaytarib bo‘lmaydi.`
-  );
+  const confirmed = await showBooklyConfirm(
+  title,
+  "Bu amalni qaytarib bo‘lmaydi."
+);
 
-  if (!confirmed) return;
+if (!confirmed) return;
 
   BooklyStorage.deleteBook(bookId);
 
@@ -424,7 +425,79 @@
     BooklyTelegram.haptic("success");
   }
   }
+function showBooklyConfirm(title, message) {
+  return new Promise((resolve) => {
+    const oldModal = document.getElementById("bookly-confirm-modal");
+    if (oldModal) oldModal.remove();
 
+    const modal = document.createElement("div");
+
+    modal.id = "bookly-confirm-modal";
+
+    modal.innerHTML = `
+      <div class="bookly-confirm-overlay">
+        <div class="bookly-confirm-box">
+
+          <div class="bookly-confirm-icon">
+            🗑️
+          </div>
+
+          <h3>Kitobni o‘chirish?</h3>
+
+          <p class="bookly-confirm-title">
+            “${escapeHtml(title)}”
+          </p>
+
+          <p class="bookly-confirm-message">
+            ${escapeHtml(message)}
+          </p>
+
+          <div class="bookly-confirm-actions">
+            <button
+              type="button"
+              class="bookly-confirm-cancel"
+              id="bookly-confirm-cancel"
+            >
+              Bekor qilish
+            </button>
+
+            <button
+              type="button"
+              class="bookly-confirm-delete"
+              id="bookly-confirm-delete"
+            >
+              🗑️ O‘chirish
+            </button>
+          </div>
+
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const close = (result) => {
+      modal.remove();
+      resolve(result);
+    };
+
+    document
+      .getElementById("bookly-confirm-cancel")
+      .addEventListener("click", () => close(false));
+
+    document
+      .getElementById("bookly-confirm-delete")
+      .addEventListener("click", () => close(true));
+
+    modal
+      .querySelector(".bookly-confirm-overlay")
+      .addEventListener("click", (event) => {
+        if (event.target.classList.contains("bookly-confirm-overlay")) {
+          close(false);
+        }
+      });
+  });
+}
   // ----------------------------------------------------------
   // Settings / Mode
   // ----------------------------------------------------------
