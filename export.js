@@ -4,11 +4,6 @@
 
 window.BooklyExport = (() => {
 
-  function getBook(bookId) {
-    if (!window.BooklyStorage) return null;
-    return BooklyStorage.getBook(bookId);
-  }
-
   function safeFileName(name) {
     return String(name || "bookly-kitob")
       .trim()
@@ -17,19 +12,13 @@ window.BooklyExport = (() => {
       .slice(0, 80) || "bookly-kitob";
   }
 
-  function showMessage(message) {
-    if (
-      window.BooklyTelegram &&
-      typeof BooklyTelegram.showAlert === "function"
-    ) {
-      BooklyTelegram.showAlert(message);
-    } else {
-      alert(message);
-    }
+  function showMessage(text) {
+    alert(text);
   }
 
   async function exportPDF(bookId) {
-    const book = getBook(bookId);
+
+    const book = BooklyStorage.getBook(bookId);
 
     if (!book) {
       showMessage("Kitob topilmadi.");
@@ -38,197 +27,225 @@ window.BooklyExport = (() => {
 
     if (typeof window.html2pdf === "undefined") {
       showMessage(
-        "PDF moduli yuklanmadi. Internetni tekshirib qayta urinib ko‘ring."
+        "PDF moduli yuklanmagan. Internetni tekshirib sahifani yangilang."
       );
       return;
     }
 
-    const previewRoot = document.getElementById("preview-root");
+    const root =
+      document.getElementById("preview-root");
 
-    if (!previewRoot) {
-      showMessage("Kitob ko‘rish oynasi topilmadi.");
+    if (!root) {
+      showMessage("Preview oynasi topilmadi.");
       return;
     }
 
-    const oldButton = document.getElementById("preview-export-btn");
-
-    if (oldButton) {
-      oldButton.disabled = true;
-      oldButton.textContent = "⏳";
+    // MUHIM:
+    // PDF bosilganda preview ochilmagan bo‘lsa ham,
+    // kitobni preview ichiga render qilamiz.
+    if (
+      window.BooklyPreview &&
+      typeof BooklyPreview.renderBook === "function"
+    ) {
+      BooklyPreview.renderBook(book);
     }
 
-    try {
-      const exportContainer = document.createElement("div");
+    // DOM yangilanishini kutamiz
+    await new Promise(resolve => {
+      setTimeout(resolve, 300);
+    });
 
-      exportContainer.className = "bookly-pdf-export";
+    if (!root.innerHTML.trim()) {
+      showMessage(
+        "Kitob mazmuni topilmadi. Avval kitobni ochib ko‘ring."
+      );
+      return;
+    }
 
-      exportContainer.innerHTML = previewRoot.innerHTML;
+    // PDF uchun alohida container
+    const container =
+      document.createElement("div");
 
-      exportContainer.style.position = "fixed";
-      exportContainer.style.left = "-100000px";
-      exportContainer.style.top = "0";
-      exportContainer.style.width = "794px";
-      exportContainer.style.background = "#ffffff";
-      exportContainer.style.color = "#111111";
-      exportContainer.style.padding = "40px";
-      exportContainer.style.boxSizing = "border-box";
-      exportContainer.style.fontFamily =
-        "Arial, Helvetica, sans-serif";
+    container.innerHTML =
+      root.innerHTML;
 
-      document.body.appendChild(exportContainer);
+    container.className =
+      "bookly-pdf-container";
 
-      // PDF uchun audio playerni olib tashlaymiz.
-      exportContainer
-        .querySelectorAll("audio")
-        .forEach(audio => {
-          const wrapper = audio.closest(".reader-audio");
+    // html2canvas ko‘ra oladigan joyda turadi
+    container.style.position = "absolute";
+    container.style.left = "0";
+    container.style.top =
+      window.scrollY + "px";
 
-          if (wrapper) {
-            wrapper.remove();
-          } else {
-            audio.remove();
-          }
+    container.style.width = "794px";
+    container.style.minHeight = "1123px";
+
+    container.style.padding = "40px";
+    container.style.boxSizing = "border-box";
+
+    container.style.background = "#ffffff";
+    container.style.color = "#111111";
+
+    container.style.zIndex = "-9999";
+
+    container.style.fontFamily =
+      "Arial, Helvetica, sans-serif";
+
+    document.body.appendChild(container);
+
+    // Audio PDF ichiga kirmaydi
+    container
+      .querySelectorAll("audio")
+      .forEach(audio => {
+        const parent =
+          audio.closest(".reader-audio");
+
+        if (parent) {
+          parent.remove();
+        } else {
+          audio.remove();
+        }
+      });
+
+    // Rasmlar yuklanishini kutamiz
+    const images =
+      container.querySelectorAll("img");
+
+    await Promise.all(
+      [...images].map(image => {
+
+        if (image.complete) {
+          return Promise.resolve();
+        }
+
+        return new Promise(resolve => {
+          image.onload = resolve;
+          image.onerror = resolve;
         });
 
-      const images = exportContainer.querySelectorAll("img");
+      })
+    );
 
-      await Promise.all(
-        [...images].map(image => {
-          if (image.complete) {
-            return Promise.resolve();
-          }
-
-          return new Promise(resolve => {
-            image.onload = resolve;
-            image.onerror = resolve;
-          });
-        })
-      );
-
-      const options = {
-        margin: [12, 12, 12, 12],
-
-        filename:
-          safeFileName(book.title) + ".pdf",
-
-        image: {
-          type: "jpeg",
-          quality: 0.95
-        },
-
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: "#ffffff"
-        },
-
-        jsPDF: {
-          unit: "mm",
-          format: "a4",
-          orientation: "portrait"
-        },
-
-        pagebreak: {
-          mode: [
-            "css",
-            "legacy"
-          ]
-        }
-      };
+    try {
 
       await window.html2pdf()
-        .set(options)
-        .from(exportContainer)
+        .set({
+
+          margin: 10,
+
+          filename:
+            safeFileName(book.title) +
+            ".pdf",
+
+          image: {
+            type: "jpeg",
+            quality: 0.98
+          },
+
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: "#ffffff",
+
+            logging: false
+          },
+
+          jsPDF: {
+            unit: "mm",
+            format: "a4",
+            orientation: "portrait"
+          },
+
+          pagebreak: {
+            mode: [
+              "css",
+              "legacy"
+            ]
+          }
+
+        })
+        .from(container)
         .save();
 
-      exportContainer.remove();
-
-      if (oldButton) {
-        oldButton.disabled = false;
-        oldButton.textContent = "📄";
-      }
-
-      if (
-        window.BooklyTelegram &&
-        typeof BooklyTelegram.haptic === "function"
-      ) {
-        BooklyTelegram.haptic("success");
-      }
+      console.log(
+        "✅ PDF muvaffaqiyatli yaratildi."
+      );
 
     } catch (error) {
 
       console.error(
-        "Bookly PDF export error:",
+        "❌ PDF yaratishda xatolik:",
         error
       );
-
-      const exportContainer =
-        document.querySelector(".bookly-pdf-export");
-
-      if (exportContainer) {
-        exportContainer.remove();
-      }
-
-      if (oldButton) {
-        oldButton.disabled = false;
-        oldButton.textContent = "📄";
-      }
 
       showMessage(
         "PDF yaratishda xatolik yuz berdi."
       );
+
+    } finally {
+
+      container.remove();
+
     }
   }
 
-  async function exportCurrentBook() {
-    if (
-      window.BooklyPreview &&
-      typeof BooklyPreview.getCurrentBookId === "function"
-    ) {
-      const bookId =
-        BooklyPreview.getCurrentBookId();
+  function exportCurrentBook() {
 
-      if (bookId) {
-        return exportPDF(bookId);
-      }
-    }
+    let bookId = null;
 
+    // Avval editor
     if (
       window.BooklyEditor &&
-      typeof BooklyEditor.getCurrentBookId === "function"
+      typeof BooklyEditor.getCurrentBookId ===
+        "function"
     ) {
-      const bookId =
+      bookId =
         BooklyEditor.getCurrentBookId();
-
-      if (bookId) {
-        return exportPDF(bookId);
-      }
     }
 
-    showMessage("Avval kitobni tanlang.");
+    // Keyin preview
+    if (
+      !bookId &&
+      window.BooklyPreview &&
+      typeof BooklyPreview.getCurrentBookId ===
+        "function"
+    ) {
+      bookId =
+        BooklyPreview.getCurrentBookId();
+    }
+
+    if (!bookId) {
+      showMessage(
+        "Avval kitobni tanlang."
+      );
+      return;
+    }
+
+    exportPDF(bookId);
   }
 
   function setup() {
 
-    const editorExportButton =
-      document.getElementById("editor-export-btn");
-
-    if (editorExportButton) {
-      editorExportButton.addEventListener(
-        "click",
-        exportCurrentBook
+    const editorButton =
+      document.getElementById(
+        "editor-export-btn"
       );
+
+    if (editorButton) {
+      editorButton.onclick =
+        exportCurrentBook;
     }
 
-    const previewExportButton =
-      document.getElementById("preview-export-btn");
-
-    if (previewExportButton) {
-      previewExportButton.addEventListener(
-        "click",
-        exportCurrentBook
+    const previewButton =
+      document.getElementById(
+        "preview-export-btn"
       );
+
+    if (previewButton) {
+      previewButton.onclick =
+        exportCurrentBook;
     }
   }
 
@@ -247,4 +264,6 @@ document.addEventListener(
   }
 );
 
-console.log("Bookly Export tayyor.");
+console.log(
+  "📄 Bookly PDF Export tayyor."
+); 
