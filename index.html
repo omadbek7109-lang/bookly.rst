@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Bookly Mini — elektron kitob yaratish</title>
+<meta name="description" content="Telegram Mini App: o'z elektron kitobingizni yarating, tahrirlang va o'qing." />
+
+<!-- Telegram WebApp SDK -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<!-- PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<link rel="stylesheet" href="style.css" />
+</head>
+
+<body data-mode="light">
+
+<div class="app-shell">
+
+  <!-- DASHBOARD -->
+  <section id="view-dashboard" class="view">
+    <header class="topbar">
+      <h1 class="topbar-title">📚 Mening kitoblarim</h1>
+    </header>
+
+    <div class="view-content">
+      <button id="btn-new-book" class="btn btn-primary btn-block">
+        + Yangi kitob
+      </button>
+
+      <div id="dashboard-empty" class="empty-state hidden">
+        <div class="empty-state-icon">📖</div>
+        <p>Hali kitob yo‘q. Birinchi kitobingizni yarating!</p>
+
+        <button id="btn-new-book-empty" class="btn btn-primary">
+          + Yangi kitob
+        </button>
+      </div>
+
+      <div id="book-grid" class="book-grid"></div>
+    </div>
+  </section>
+
+  <!-- EDITOR -->
+  <section id="view-editor" class="view hidden">
+
+    <header class="topbar">
+
+      <button id="editor-back" class="icon-btn" aria-label="Orqaga">
+        ←
+      </button>
+
+      <input
+        id="editor-book-title"
+        class="topbar-title-input"
+        placeholder="Kitob nomi"
+      />
+
+      <button
+        id="editor-preview-btn"
+        class="icon-btn"
+        title="Ko‘rish"
+      >
+        👀
+      </button>
+
+    </header>
+
+    <div class="view-content editor-content">
+
+      <div class="editor-chapters-panel">
+
+        <h2 class="panel-label">Boblar</h2>
+
+        <ul
+          id="editor-chapter-list"
+          class="chapter-list"
+        ></ul>
+
+        <button
+          id="editor-add-chapter"
+          class="btn btn-ghost btn-small btn-block"
+        >
+          + Bob qo‘shish
+        </button>
+
+      </div>
+
+      <div class="editor-chapter-panel">
+
+        <input
+          id="editor-chapter-title"
+          class="chapter-title-input"
+          placeholder="Bob sarlavhasi"
+        />
+
+        <div
+          id="editor-blocks"
+          class="editor-blocks"
+        ></div>
+
+        <div class="add-block-toolbar">
+
+          <button
+            data-add-block="text"
+            class="btn btn-ghost btn-small"
+          >
+            ✏️ Matn
+          </button>
+
+          <button
+            data-add-block="heading"
+            class="btn btn-ghost btn-small"
+          >
+            🔠 Sarlavha
+          </button>
+
+          <button
+            data-add-block="image"
+            class="btn btn-ghost btn-small"
+          >
+            🖼️ Rasm
+          </button>
+
+          <button
+            data-add-block="quote"
+            class="btn btn-ghost btn-small"
+          >
+            ❝ Iqtibos
+          </button>
+
+          <button
+            data-add-block="divider"
+            class="btn btn-ghost btn-small"
+          >
+            ➖ Ajratgich
+          </button>
+
+        </div>
+
+      </div>
+
+      <div class="editor-side-panel">
+
+        <h2 class="panel-label">
+          🎨 Dizayn
+        </h2>
+
+        <div class="theme-picker">
+
+          <button
+            data-theme-choice="classic"
+            class="theme-swatch theme-swatch-classic"
+          >
+            Classic
+          </button>
+
+          <button
+            data-theme-choice="modern"
+            class="theme-swatch theme-swatch-modern"
+          >
+            Modern
+          </button>
+
+          <button
+            data-theme-choice="dark"
+            class="theme-swatch theme-swatch-dark"
+          >
+            Dark
+          </button>
+
+        </div>
+
+        <h2 class="panel-label">
+          🎵 Audio
+        </h2>
+
+        <label class="btn btn-ghost btn-small btn-block file-btn">
+
+          Audio tanlash
+
+          <input
+            id="editor-audio-input"
+            type="file"
+            accept="audio/*"
+            hidden
+          />
+
+        </label>
+
+        <p
+          id="editor-audio-name"
+          class="hint-text"
+        >
+          Audio biriktirilmagan
+        </p>
+
+        <div id="editor-audio-preview"></div>
+
+        <button
+          id="editor-audio-remove"
+          class="btn btn-ghost btn-small btn-block"
+        >
+          Audio olib tashlash
+        </button>
+
+        <h2 class="panel-label">
+          📤 Eksport
+        </h2>
+
+        <button
+          id="editor-export-btn"
+          class="btn btn-secondary btn-block"
+        >
+          📄 PDF yaratish
+        </button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- PREVIEW -->
+  <section id="view-preview" class="view hidden">
+
+    <header class="topbar">
+
+      <button
+        id="preview-back"
+        class="icon-btn"
+        aria-label="Orqaga"
+      >
+        ←
+      </button>
+
+      <h1 class="topbar-title">
+        👀 Ko‘rish
+      </h1>
+
+      <button
+        id="preview-export-btn"
+        class="icon-btn"
+        title="PDF"
+      >
+        📄
+      </button>
+
+    </header>
+
+    <div class="view-content">
+
+      <div
+        id="preview-root"
+        class="reader"
+      ></div>
+
+    </div>
+
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="view-settings" class="view hidden">
+
+    <header class="topbar">
+      <h1 class="topbar-title">
+        ⚙️ Sozlamalar
+      </h1>
+    </header>
+
+    <div class="view-content">
+
+      <h2 class="panel-label">
+        Ko‘rinish rejimi
+      </h2>
+
+      <div class="mode-picker">
+
+        <button
+          data-mode-choice="light"
+          class="btn btn-ghost"
+        >
+          ☀️ Light
+        </button>
+
+        <button
+          data-mode-choice="dark"
+          class="btn btn-ghost"
+        >
+          🌙 Dark
+        </button>
+
+      </div>
+
+      <p class="hint-text settings-about">
+        Bookly Mini — Telegram uchun elektron kitob yaratish platformasi.
+        Barcha ma'lumotlar shu qurilmada, brauzeringizning localStorage
+        xotirasida saqlanadi.
+      </p>
+
+    </div>
+
+  </section>
+
+  <!-- BOTTOM NAV -->
+  <nav id="bottom-nav" class="bottom-nav">
+
+    <button
+      class="nav-btn active"
+      data-nav="dashboard"
+    >
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Bosh sahifa</span>
+    </button>
+
+    <button
+      class="nav-btn"
+      data-nav="dashboard"
+      id="nav-books"
+    >
+      <span class="nav-icon">📚</span>
+      <span class="nav-label">Kitoblarim</span>
+    </button>
+
+    <button
+      class="nav-btn"
+      data-nav="settings"
+    >
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">Sozlamalar</span>
+    </button>
+
+  </nav>
+
+</div>
+
+<!-- NEW BOOK MODAL -->
+<div
+  id="new-book-modal"
+  class="modal-overlay hidden"
+>
+
+  <div class="modal-card">
+
+    <div class="modal-header">
+
+      <h2>
+        Yangi kitob
+      </h2>
+
+      <button
+        id="new-book-close"
+        class="icon-btn"
+      >
+        ✕
+      </button>
+
+    </div>
+
+    <form
+      id="new-book-form"
+      class="modal-body"
+    >
+
+      <label class="field-label">
+        Kitob nomi
+      </label>
+
+      <input
+        id="new-book-title"
+        class="field-input"
+        placeholder="Masalan: Sirli o‘rmon"
+        required
+      />
+
+      <label class="field-label">
+        Muallif
+      </label>
+
+      <input
+        id="new-book-author"
+        class="field-input"
+        placeholder="Ismingiz"
+      />
+
+      <label class="field-label">
+        Muqova rasmi
+      </label>
+
+      <label class="btn btn-ghost btn-small file-btn">
+
+        Rasm tanlash
+
+        <input
+          id="new-book-cover-input"
+          type="file"
+          accept="image/*"
+          hidden
+        />
+
+      </label>
+
+      <div
+        id="new-book-cover-preview"
+        class="cover-preview"
+      ></div>
+
+      <label class="field-label">
+        Qisqa tavsif
+      </label>
+
+      <textarea
+        id="new-book-desc"
+        class="field-input"
+        rows="3"
+        placeholder="Kitobingiz haqida bir necha jumla..."
+      ></textarea>
+
+      <label class="field-label">
+        Dizayn
+      </label>
+
+      <div class="theme-picker">
+
+        <button
+          type="button"
+          data-theme-pick="classic"
+          class="theme-swatch theme-swatch-classic active"
+        >
+          Classic
+        </button>
+
+        <button
+          type="button"
+          data-theme-pick="modern"
+          class="theme-swatch theme-swatch-modern"
+        >
+          Modern
+        </button>
+
+        <button
+          type="button"
+          data-theme-pick="dark"
+          class="theme-swatch theme-swatch-dark"
+        >
+          Dark
+        </button>
+
+      </div>
+
+      <div class="modal-actions">
+
+        <button
+          type="button"
+          id="new-book-cancel"
+          class="btn btn-ghost"
+        >
+          Bekor qilish
+        </button>
+
+        <button
+          type="submit"
+          class="btn btn-primary"
+        >
+          Yaratish
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+
+<script src="storage.js"></script>
+<script src="telegram.js"></script>
+<script src="editor.js"></script>
+<script src="preview.js"></script>
+<script src="export.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
