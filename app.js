@@ -393,7 +393,7 @@
   // Delete
   // ----------------------------------------------------------
 
-  function deleteBook(bookId) {
+async function deleteBook(bookId) {
   const book = BooklyStorage.getBook(bookId);
 
   if (!book) return;
