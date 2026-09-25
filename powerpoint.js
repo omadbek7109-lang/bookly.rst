@@ -308,6 +308,106 @@ window.BooklyPowerPoint = (() => {
     addFooter(slide, book, pageNumber);
   }
 
+  // --------------------------------------------------------
+  // Custom success modal (alert o'rniga)
+  // --------------------------------------------------------
+  function showSuccessModal(fileName, blobUrl) {
+    const old = document.getElementById("bookly-pptx-modal");
+    if (old) old.remove();
+
+    const modal = document.createElement("div");
+    modal.id = "bookly-pptx-modal";
+
+    modal.innerHTML = `
+      <div class="pptx-modal-overlay">
+        <div class="pptx-modal-box">
+
+          <div class="pptx-modal-icon">✅</div>
+
+          <h3 class="pptx-modal-title">
+            PowerPoint tayyor!
+          </h3>
+
+          <p class="pptx-modal-subtitle">
+            Fayl muvaffaqiyatli yaratildi
+          </p>
+
+          <div class="pptx-modal-filename">
+            📄 ${fileName}
+          </div>
+
+          <div class="pptx-modal-actions">
+
+            <button
+              type="button"
+              class="pptx-modal-btn pptx-modal-btn-primary"
+              id="pptx-modal-open"
+            >
+              📂 Faylni ochish
+            </button>
+
+            <button
+              type="button"
+              class="pptx-modal-btn pptx-modal-btn-secondary"
+              id="pptx-modal-download"
+            >
+              ⬇️ Qayta yuklash
+            </button>
+
+            <button
+              type="button"
+              class="pptx-modal-btn pptx-modal-btn-ghost"
+              id="pptx-modal-close"
+            >
+              Yopish
+            </button>
+
+          </div>
+
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const close = () => modal.remove();
+
+    document
+      .getElementById("pptx-modal-close")
+      .addEventListener("click", close);
+
+    document
+      .getElementById("pptx-modal-open")
+      .addEventListener("click", () => {
+        if (blobUrl) {
+          window.open(blobUrl, "_blank");
+        } else {
+          alert("Faylni qayta yuklab oling.");
+        }
+      });
+
+    document
+      .getElementById("pptx-modal-download")
+      .addEventListener("click", () => {
+        if (blobUrl) {
+          const a = document.createElement("a");
+          a.href = blobUrl;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+      });
+
+    modal
+      .querySelector(".pptx-modal-overlay")
+      .addEventListener("click", (event) => {
+        if (event.target.classList.contains("pptx-modal-overlay")) {
+          close();
+        }
+      });
+  }
+
   async function exportPPTX(bookId) {
 
     if (typeof PptxGenJS === "undefined") {
@@ -416,14 +516,24 @@ window.BooklyPowerPoint = (() => {
         ".pptx";
 
       try {
-        await pptx.writeFile({
-          fileName: filename
+        // Faylni Blob sifatida olamiz
+        const blob = await pptx.write({
+          outputType: "blob"
         });
 
-        alert(
-          "✅ PowerPoint tayyor!\n\nFayl yuklab olish boshlandi.\n\nFayl nomi: " +
-          filename
-        );
+        const blobUrl = URL.createObjectURL(blob);
+
+        // Avtomatik yuklab olish
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        // Chiroyli modalni ko'rsatish
+        showSuccessModal(filename, blobUrl);
+
       } catch (error) {
         console.error("PowerPoint writeFile xatosi:", error);
 
@@ -476,4 +586,4 @@ window.BooklyPowerPoint = (() => {
     exportCurrentBook
   };
 
-})(); 
+})();
