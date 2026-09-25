@@ -258,10 +258,12 @@ window.BooklyPowerPoint = (() => {
     const slide = pptx.addSlide();
     addBackground(slide, book.theme);
 
-    if (block.src) {
+    const imageData = block.content || block.src;
+
+    if (imageData) {
       try {
         slide.addImage({
-          data: block.src,
+          data: imageData,
           x: 1,
           y: 0.7,
           w: 11.3,
@@ -270,7 +272,7 @@ window.BooklyPowerPoint = (() => {
         });
       } catch (error) {
         slide.addText(
-          "Rasmni PowerPoint'ga qo‘shib bo‘lmadi.",
+          "Rasmni PowerPoint'ga qo'shib bo'lmadi.",
           {
             x: 1,
             y: 3,
@@ -423,7 +425,7 @@ window.BooklyPowerPoint = (() => {
       addTextSlide(
         pptx,
         book,
-        "Kitob hali mazmun bilan to‘ldirilmagan.",
+        "Kitob hali mazmun bilan to'ldirilmagan.",
         pageNumber
       );
     }
@@ -469,4 +471,4 @@ window.BooklyPowerPoint = (() => {
     exportCurrentBook
   };
 
-})();
+})(); 
