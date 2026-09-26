@@ -281,21 +281,142 @@ window.BooklyPowerPoint = (() => {
     footer(slide, book, page);
   }
 
-  function downloadBlob(blob, filename) {
-    const url = URL.createObjectURL(blob);
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
+  const oldBox = document.getElementById("bookly-pptx-download");
+  if (oldBox) oldBox.remove();
 
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+  const box = document.createElement("div");
 
-    setTimeout(() => {
+  box.id = "bookly-pptx-download";
+
+  box.style.cssText = `
+    position: fixed;
+    left: 20px;
+    right: 20px;
+    bottom: 90px;
+    z-index: 999999;
+    background: #1f2937;
+    padding: 18px;
+    border-radius: 18px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.35);
+    text-align: center;
+  `;
+
+  box.innerHTML = `
+    <div style="
+      color:white;
+      font-size:17px;
+      font-weight:600;
+      margin-bottom:12px;
+    ">
+      📊 PowerPoint tayyor!
+    </div>
+
+    <div style="
+      color:#cbd5e1;
+      font-size:14px;
+      margin-bottom:15px;
+    ">
+      ${filename}
+    </div>
+
+    <a
+      href="${url}"
+      download="${filename}"
+      style="
+        display:block;
+        background:#10b981;
+        color:white;
+        text-decoration:none;
+        padding:13px;
+        border-radius:12px;
+        font-size:16px;
+        font-weight:600;
+        margin-bottom:9px;
+      "
+    >
+      📥 Faylni saqlash
+    </a>
+
+    <button
+      id="bookly-pptx-share"
+      style="
+        width:100%;
+        border:0;
+        background:#374151;
+        color:white;
+        padding:13px;
+        border-radius:12px;
+        font-size:16px;
+        font-weight:600;
+      "
+    >
+      📤 Ulashish
+    </button>
+
+    <button
+      id="bookly-pptx-close"
+      style="
+        width:100%;
+        border:0;
+        background:transparent;
+        color:#9ca3af;
+        padding:10px;
+        margin-top:4px;
+        font-size:14px;
+      "
+    >
+      Yopish
+    </button>
+  `;
+
+  document.body.appendChild(box);
+
+  document
+    .getElementById("bookly-pptx-close")
+    .onclick = () => {
       URL.revokeObjectURL(url);
-    }, 5000);
-  }
+      box.remove();
+    };
+
+  document
+    .getElementById("bookly-pptx-share")
+    .onclick = async () => {
+      try {
+        const file = new File(
+          [blob],
+          filename,
+          {
+            type:
+              "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+          }
+        );
+
+        if (
+          navigator.share &&
+          navigator.canShare &&
+          navigator.canShare({ files: [file] })
+        ) {
+          await navigator.share({
+            files: [file],
+            title: filename,
+            text: "Bookly Mini PowerPoint"
+          });
+        } else {
+          alert(
+            "Ushbu qurilmada fayl ulashish qo‘llab-quvvatlanmaydi. " +
+            "«📥 Faylni saqlash» tugmasini bosing."
+          );
+        }
+      } catch (error) {
+        if (error?.name !== "AbortError") {
+          console.error("Share xatosi:", error);
+        }
+      }
+    };
+}
 
   async function exportPPTX(bookId) {
 
