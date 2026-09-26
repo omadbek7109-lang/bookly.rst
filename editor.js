@@ -356,18 +356,100 @@
         );
 
     } else if (
-      block.type === "divider"
-    ) {
+  block.type === "divider"
+) {
 
-      const divider =
-        document.createElement("hr");
+  const divider =
+    document.createElement("hr");
 
-      divider.className =
-        "block-divider-preview";
+  divider.className =
+    "block-divider-preview";
 
-      content = divider;
+  content = divider;
 
-    } else {
+} else if (block.type === "audio") {
+
+  const audioWrap =
+    document.createElement("div");
+
+  audioWrap.className = "block-audio";
+
+  if (block.content) {
+
+    const audio =
+      document.createElement("audio");
+
+    audio.controls = true;
+    audio.src = block.content;
+    audio.style.width = "100%";
+
+    audioWrap.appendChild(audio);
+
+    const changeBtn =
+      document.createElement("button");
+
+    changeBtn.type = "button";
+    changeBtn.className = "btn btn-ghost btn-small";
+    changeBtn.textContent = "🔄 Audio almashtirish";
+    changeBtn.style.marginTop = "8px";
+
+    changeBtn.addEventListener("click", () => {
+
+      const input =
+        document.createElement("input");
+
+      input.type = "file";
+      input.accept = "audio/*";
+
+      input.addEventListener("change", () => {
+
+        const file = input.files?.[0];
+        if (!file) return;
+
+        readFileAsDataURL(file, dataUrl => {
+          updateBlock(block.id, { content: dataUrl });
+          renderChapter();
+        });
+      });
+
+      input.click();
+    });
+
+    audioWrap.appendChild(changeBtn);
+
+  } else {
+
+    const label =
+      document.createElement("label");
+
+    label.className = "block-image-upload";
+    label.textContent = "🎵 Audio tanlash";
+
+    const input =
+      document.createElement("input");
+
+    input.type = "file";
+    input.accept = "audio/*";
+    input.hidden = true;
+
+    input.addEventListener("change", () => {
+
+      const file = input.files?.[0];
+      if (!file) return;
+
+      readFileAsDataURL(file, dataUrl => {
+        updateBlock(block.id, { content: dataUrl });
+        renderChapter();
+      });
+    });
+
+    label.appendChild(input);
+    audioWrap.appendChild(label);
+  }
+
+  content = audioWrap;
+
+} else {
 
       const editable =
         document.createElement("div");
