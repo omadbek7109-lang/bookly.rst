@@ -128,14 +128,29 @@ window.BooklyPreview = (() => {
 
       case "divider":
 
-        return `
-          <hr class="reader-divider" />
-        `;
+  return `
+    <hr class="reader-divider" />
+  `;
 
 
-      default:
+case "audio":
 
-        return "";
+  if (!block.content) return "";
+
+  return `
+    <div class="reader-audio-block">
+      <div class="reader-audio-label">🎵 Audio</div>
+      <audio controls preload="metadata" style="width:100%">
+        <source src="${block.content}" />
+        Brauzeringiz audio formatini qo'llab-quvvatlamaydi.
+      </audio>
+    </div>
+  `;
+
+
+default:
+
+  return "";
 
     }
 
