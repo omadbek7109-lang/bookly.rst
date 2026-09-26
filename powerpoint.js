@@ -481,17 +481,32 @@ window.BooklyPowerPoint = (() => {
         safeFileName(book.title || "bookly-book") + ".pptx";
 
       try {
-        // ✅ 1) To'g'ri .pptx kengaytma bilan yuklab olish
-        await pptx.writeFile({ fileName: filename });
+  // PPTX faylni faqat bir marta Blob sifatida yaratamiz
+  const blob = await pptx.write({
+    outputType: "blob"
+  });
 
-        // ✅ 2) Blob'ni modal uchun saqlab olamiz
-        const blob = await pptx.write({ outputType: "blob" });
-        const blobUrl = URL.createObjectURL(blob);
+  // Faylni yuklab olish uchun URL
+  const blobUrl = URL.createObjectURL(blob);
 
-        // ✅ 3) Modalni ko'rsatish
-        showSuccessModal(filename, blob, blobUrl);
+  // Faylni yuklab olish
+  downloadBlob(blobUrl, filename);
 
-      } catch (error) {
+  // Tayyor fayl oynasini chiqarish
+  showSuccessModal(
+    filename,
+    blob,
+    blobUrl
+  );
+
+} catch (error) {
+  console.error("PowerPoint export xatosi:", error);
+
+  alert(
+    "❌ PowerPoint yaratishda xatolik:\n\n" +
+    (error?.message || "Noma'lum xatolik")
+  );
+}
         console.error("PowerPoint writeFile xatosi:", error);
         alert(
           "❌ Faylni yuklab olishda xatolik:\n\n" +
