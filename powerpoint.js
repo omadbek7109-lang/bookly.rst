@@ -280,110 +280,170 @@ window.BooklyPowerPoint = (() => {
 
     footer(slide, book, page);
   }
+async function downloadBlob(blob, filename) {
 
-function downloadBlob(blob, filename) {
-  const url = URL.createObjectURL(blob);
+  const WORKER =
+    "https://bookly-bot-omadbekrustamov67.workers.dev";
 
-  const oldBox = document.getElementById("bookly-pptx-download");
-  if (oldBox) oldBox.remove();
+  try {
 
-  const box = document.createElement("div");
+    // Telegram Mini App ma'lumotlari
+    const initData =
+      window.Telegram?.WebApp?.initData;
 
-  box.id = "bookly-pptx-download";
 
-  box.style.cssText = `
-    position: fixed;
-    left: 20px;
-    right: 20px;
-    bottom: 90px;
-    z-index: 999999;
-    background: #1f2937;
-    padding: 18px;
-    border-radius: 18px;
-    box-shadow: 0 10px 40px rgba(0,0,0,.35);
-    text-align: center;
-  `;
+    if (!initData) {
 
-  box.innerHTML = `
-    <div style="
-      color:white;
-      font-size:17px;
-      font-weight:600;
-      margin-bottom:12px;
-    ">
-      📊 PowerPoint tayyor!
-    </div>
+      alert(
+        "❌ Telegram ma'lumotlari topilmadi.\n\n" +
+        "Bookly'ni Telegram ichidan oching."
+      );
 
-    <div style="
-      color:#cbd5e1;
-      font-size:14px;
-      margin-bottom:15px;
-    ">
-      ${filename}
-    </div>
+      return;
+    }
 
-    <a
-      href="${url}"
-      download="${filename}"
-      style="
-        display:block;
-        background:#10b981;
-        color:white;
-        text-decoration:none;
-        padding:13px;
-        border-radius:12px;
-        font-size:16px;
+
+    // FormData
+    const form = new FormData();
+
+    form.append(
+      "initData",
+      initData
+    );
+
+    form.append(
+      "file",
+      blob,
+      filename
+    );
+
+
+    // Worker'ga yuboramiz
+    const response = await fetch(
+      WORKER + "/sendfile",
+      {
+        method: "POST",
+        body: form
+      }
+    );
+
+
+    const text =
+      await response.text();
+
+
+    if (!response.ok) {
+
+      console.error(
+        "Worker xatosi:",
+        text
+      );
+
+      throw new Error(
+        text || "Fayl yuborilmadi"
+      );
+    }
+
+
+    // UI
+    const oldBox =
+      document.getElementById(
+        "bookly-pptx-download"
+      );
+
+    if (oldBox) {
+      oldBox.remove();
+    }
+
+
+    const box =
+      document.createElement("div");
+
+    box.id =
+      "bookly-pptx-download";
+
+
+    box.style.cssText = `
+      position: fixed;
+      left: 20px;
+      right: 20px;
+      bottom: 90px;
+      z-index: 999999;
+      background: #1f2937;
+      padding: 20px;
+      border-radius: 18px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.4);
+      text-align: center;
+      color: white;
+    `;
+
+
+    box.innerHTML = `
+
+      <div style="
+        font-size:18px;
         font-weight:600;
-        margin-bottom:9px;
-      "
-    >
-      📥 Faylni saqlash
-    </a>
+        margin-bottom:10px;
+      ">
+        ✅ PowerPoint Telegramga yuborildi!
+      </div>
 
-    <button
-      id="bookly-pptx-share"
-      style="
-        width:100%;
-        border:0;
-        background:#374151;
-        color:white;
-        padding:13px;
-        border-radius:12px;
-        font-size:16px;
-        font-weight:600;
-      "
-    >
-      📤 Ulashish
-    </button>
-
-    <button
-      id="bookly-pptx-close"
-      style="
-        width:100%;
-        border:0;
-        background:transparent;
-        color:#9ca3af;
-        padding:10px;
-        margin-top:4px;
+      <div style="
+        color:#cbd5e1;
         font-size:14px;
-      "
-    >
-      Yopish
-    </button>
-  `;
+        margin-bottom:15px;
+      ">
+        ${filename}
+      </div>
 
-  document.body.appendChild(box);
+      <button
+        id="bookly-pptx-close"
+        style="
+          width:100%;
+          border:0;
+          background:#374151;
+          color:white;
+          padding:13px;
+          border-radius:12px;
+          font-size:16px;
+        "
+      >
+        Yopish
+      </button>
 
-  document
-    .getElementById("bookly-pptx-close")
-    .onclick = () => {
-      URL.revokeObjectURL(url);
-      box.remove();
-    };
+    `;
 
-  document
-    .getElementById("bookly-pptx-share")
-    .onclick = async () => {
+
+    document.body.appendChild(box);
+
+
+    document
+      .getElementById(
+        "bookly-pptx-close"
+      )
+      .onclick = () => {
+
+        box.remove();
+
+      };
+
+
+  } catch (error) {
+
+    console.error(
+      "PPTX yuborish xatosi:",
+      error
+    );
+
+
+    alert(
+      "❌ PowerPoint Telegramga yuborilmadi.\n\n" +
+      (error?.message ||
+        "Noma'lum xatolik")
+    );
+
+  }
+}
       try {
         const file = new File(
           [blob],
