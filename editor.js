@@ -800,24 +800,29 @@
         renderEditor();
       };
 
-    if (
-      window.BooklyTelegram
-    ) {
+  const hasConfirm =
+    window.BooklyTelegram &&
+    typeof BooklyTelegram.showConfirm === "function";
+
+  if (hasConfirm) {
+    try {
       BooklyTelegram.showConfirm(
-        "Bu bobni o‘chirishni xohlaysizmi?",
+        "Bu bobni o'chirishni xohlaysizmi?",
         confirmed => {
-          if (confirmed) {
-            remove();
-          }
+          if (confirmed) remove();
         }
       );
-    } else if (
-      confirm(
-        "Bu bobni o‘chirishni xohlaysizmi?"
-      )
-    ) {
+    } catch (error) {
+      console.error("showConfirm xatosi:", error);
+      if (confirm("Bu bobni o'chirishni xohlaysizmi?")) {
+        remove();
+      }
+    }
+  } else {
+    if (confirm("Bu bobni o'chirishni xohlaysizmi?")) {
       remove();
     }
+  }
   }
 
   function updateTitle(value) {
